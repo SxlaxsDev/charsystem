@@ -1,3 +1,6 @@
+Hi,
+thanks for viewing this addon. This is a free version of my character system, which will be relased in march on gmodstore.com. The UI will be much better and more features will be added, so if you like this addon, report any bugs and support me. Thanks!
+
 WORKSHOP CONTENT
 In order to see all the backgrounds and materials, you need to add the https://steamcommunity.com/sharedfiles/filedetails/?id=1942736311 to your workshop collection.
 
