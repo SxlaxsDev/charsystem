@@ -1,0 +1,5 @@
+timer.Simple(0, function()
+	DarkRP.removeChatCommand("forcerpname")
+	DarkRP.removeChatCommand("freerpname")
+	concommand.Remove("rp_resetallmoney")
+end)
