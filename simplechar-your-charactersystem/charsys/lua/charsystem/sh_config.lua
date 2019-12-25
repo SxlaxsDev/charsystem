@@ -185,7 +185,6 @@ CharSystem.Config.Faction1Teams =
   [TEAM_CITIZEN] = true,
   Just copy an paste it with your team
   ]]
-  [TEAM_MINE] = true,
 
 }
 
