@@ -12,8 +12,11 @@ All in all, this system grants yo a lot of possibilities, which leads to an grea
 Admin Features
 
 !jkick *name* Kicks a player out of the faction
+
 !charname *name* *newname* Changes the name of a player
+
 !setjob *name* *job* Sets the job of a player
+
 an Admin menu
 
 
@@ -34,11 +37,17 @@ COMMANDS
 Following commands are implemented in our character system:
 
 !chars name - open the admin menu
+
 It is important, that, if you want to change something on a character, press "SAVE". Than everything will be executed,
+
 !setjob *name* *newjob* - changes the job of *name* to *newjob*
+
 !jkick *name* - kicks *name* out of his/her job
+
 !invite *name* - invite *name* to "join" you job
+
 !accept - accept an invitation
+
 !train *name* - train/set the job of *name* to the default job of your faction(can be disabled)
 
 I showed you in the pictures just 5 different backgrounds, but the addon includes 13 different backgrounds. These backgrounds are suited for First Order Roleplay, Star Wars Roleplay and Military Roleplay. If you desire, you can also add new backgrounds by yourself or just contact me.
