@@ -26,9 +26,11 @@ Player Features
 !train *name* if the faction system is enabled, the players team is changed to the default team of the faction(What players should be allowed to do that is configurable)
 
 FACTION SYSTEM
+
 This addon provides a faction system. With this you can enable up to 3 factions, each one has a default job. Users are now able to, if you grant them the permission, to train other users into the default job of the faction. This faction system will be updated and a rank system will be integrated.
 
 COMMANDS
+
 Following commands are implemented in our character system:
 
 !chars name - open the admin menu
