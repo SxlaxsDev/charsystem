@@ -28,7 +28,9 @@ an Admin menu
 Player Features
 
 !invite *name* Invite a player to your team(What players should be allowed to do that is configurable)
+
 !accept accepts an invitation
+
 !train *name* if the faction system is enabled, the players team is changed to the default team of the faction(What players should be allowed to do that is configurable)
 
 FACTION SYSTEM
