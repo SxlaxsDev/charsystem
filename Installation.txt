@@ -1,0 +1,7 @@
+Installation
+
+1. navigate to charsystem-master/simplechar-your-charactersystem/
+2. upload the foldder charsys to your server!
+3. navigate to charsys/lua/charsystem/sh_config.lua
+4. configure the addon
+5. restart the server
