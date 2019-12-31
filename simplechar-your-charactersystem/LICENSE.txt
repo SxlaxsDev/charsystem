@@ -38,8 +38,10 @@ while running The Software.
 Licensee may use The Software for the purpose of:
 
 2.1.1 Running The Software on Licensee’s Website[s] and Server[s];
-2.1.2 Publishing The Software’s output to Licensee and 3rd Parties;
+2.1.2 Publishing The Software’s output to Licensees;
 2.1.3 Modify The Software to suit Licensee’s needs and specifications.
+
+It is forbidden to reupload the files.
 
 ### 2.2 Non Assignable & Non-Transferable
 
@@ -70,11 +72,6 @@ breach was not cured, immediately upon notification; or
 to enforce his rights under this License.
 
 ## 4. Payment
-
-In consideration of the License granted under clause 2, Licensee shall pay
-Licensor a fee, via Credit-Card, PayPal or any other mean which Licensor may
-deem adequate. Failure to perform payment shall construe as material breach
-of this Agreement.
 
 ## 5. Upgrades, Updates and Fixes
 
