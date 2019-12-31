@@ -1,9 +1,6 @@
 ## 1. Preamble
 
-This Agreement, created on:
-
-23rd December 2019
-(hereinafter: Effective Date)
+This Agreement
 
 governs the relationship between
 
@@ -19,7 +16,7 @@ and
 
 This Agreement sets the terms, rights, restrictions and obligations on using
 
-[simpleChar | Your charactersystem](https://www.gmodstore.com/market/view/6842)
+[simpleChar your charactersystem (https://github.com/NS-Zeppeli/charsystem/edit/master/simplechar-your-charactersystem/)]
 
 (hereinafter: The Software)
 
