@@ -83,15 +83,6 @@ net.Receive("CharSystemPlayProfile", function(len,ply)
 if(!ply:IsValid()) then 
   return
 end
-if(ply.TimeCharChange or 0) > CurTime() then
-
-  DarkRP.notify(ply,1,4,CharSystem.Config.ErrorTime)
-
-  return
-end
-
-ply.TimeCharChange = CurTime() + 1
-
 local Slot = net.ReadUInt(8)  -- Which slot did the player choose to play?
 Slot = math.Clamp(Slot,1,3)
 local ProfileTable = sql.Query("SELECT * FROM charsys WHERE steamid = '"..ply:SteamID().."' and slot = "..Slot.."")   -- this gets a table of the char with the given slot and steamid
@@ -102,8 +93,16 @@ end
 
 ProfileTable = ProfileTable[1]
 
+if(ply.IsChoosingChar) then  -- did the user join on the server and did not choose a profile?
+ 
+  ply:UnLock()
+  ply.IsChoosingChar = nil  -- he chose a profile
+end
+    
 ply.WhichSlotPlaying = Slot  -- The variable which defines which profile the player currently uses should be set to the int we receive from the client
 ply:changeTeam(tonumber(ProfileTable.job), true, true)
+    print("test")
+    print(ProfileTable.job)
 if(CharSystem.Config.CloneID) then
   if(CharSystem.Config.JobsWithOutID[tonumber(ProfileTable.job)]) then
     ply:setDarkRPVar("rpname", tostring(ProfileTable.name))
@@ -117,11 +116,7 @@ end
 ply:setDarkRPVar("money", tonumber(ProfileTable.money))
 
 
-if(ply.IsChoosingChar) then  -- did the user join on the server and did not choose a profile?
- 
-  ply:UnLock()
-  ply.IsChoosingChar = nil  -- he chose a profile
-end
+
 
 CharSystemDB.SendProfiles(ply, Slot) -- update data
 
