@@ -23,7 +23,7 @@ end)
 
 hook.Add("PlayerInitialSpawn", "CharSystemPlayerJoinServer", function(ply)
 
-timer.Simple(0, function()
+timer.Simple(3, function()
 
 if(ply:IsValid()) then  -- is the player valid
 
