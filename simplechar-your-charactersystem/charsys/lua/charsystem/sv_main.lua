@@ -101,8 +101,7 @@ end
     
 ply.WhichSlotPlaying = Slot  -- The variable which defines which profile the player currently uses should be set to the int we receive from the client
 ply:changeTeam(tonumber(ProfileTable.job), true, true)
-    print("test")
-    print(ProfileTable.job)
+
 if(CharSystem.Config.CloneID) then
   if(CharSystem.Config.JobsWithOutID[tonumber(ProfileTable.job)]) then
     ply:setDarkRPVar("rpname", tostring(ProfileTable.name))
@@ -114,7 +113,7 @@ else
 ply:setDarkRPVar("rpname", tostring(ProfileTable.name))
 end
 ply:setDarkRPVar("money", tonumber(ProfileTable.money))
-
+ply:Spawn()
 
 
 
