@@ -1,4 +1,5 @@
 # simpleChar
+(pretty shitty and old)
 A free Version of my Character System, which will be released in April on [GmodStore.com](https://gmodstore.com/), that is to be used in any [DarkRP](https://github.com/FPtje/DarkRP) based Gamemode.
 
 ## Prerequisites
