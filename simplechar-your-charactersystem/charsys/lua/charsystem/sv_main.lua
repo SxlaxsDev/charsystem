@@ -134,7 +134,7 @@ end
 ply.IsCreatingProfile = true  -- set variable that he is creating a char on true
 
 local SlotNumber = net.ReadUInt(8)  -- On which slot should a char be created
-local name = net.ReadString()  -- Which name?
+local name = sql.SQLStr(net.ReadString())  -- Which name?
 local MaxSlots = CharSystem.Config.MaxChars[ply:GetUserGroup()] or CharSystem.Config.DefaultChars -- Which limit does the usergroup has, if it does not have one, set it to default
 
  -- No ints bigger than 3 or less than 1
