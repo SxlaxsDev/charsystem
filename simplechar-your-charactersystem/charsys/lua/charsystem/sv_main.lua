@@ -9,7 +9,7 @@ util.AddNetworkString("ChangeNameOfChar")
 CharSystemDB = CharSystemDB or {}
 
 
-hook.Add("DarkRPDBInitialized", "DBErstellen", function()
+hook.Add("DarkRPDBInitialized", "CharSystemSetup", function() -- Stick to the conventions
 
 
 sql.Query("CREATE TABLE IF NOT EXISTS charsys (id INTEGER PRIMARY KEY AUTOINCREMENT, slot INTEGER NOT NULL, steamid varchar(255) NOT NULL, name varchar(255) NOT NULL, money INTEGER NOT NULL, job INTEGER NOT NULL, cloneid INTEGER)")
@@ -215,15 +215,7 @@ end)
 
 function CharSystemDB.FindPlayer(name)  -- Just a function to get the player with a given name
   if(!name) then return end
-
-  for k,v in pairs(player.GetAll()) do
-
-    if string.find(string.lower(v:Name()), string.lower(name)) == nil then
-
-      continue
-    end
-    return v
-  end
+  return DarkRP.findPlayer(name) -- if were using DarkRP then why an own implementation that sucks on performance
 end
 
 
