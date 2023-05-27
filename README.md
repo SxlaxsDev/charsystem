@@ -1,6 +1,9 @@
 # simpleChar
 (pretty shitty and old)
 A free Version of my Character System, which will be released in April on [GmodStore.com](https://gmodstore.com/), that is to be used in any [DarkRP](https://github.com/FPtje/DarkRP) based Gamemode.
+-- Will actually not be published. I stopped working on it. This is how it looked: https://steamcommunity.com/sharedfiles/filedetails/?id=1980398556 
+
+If anyone is interested in maintaining/finishing it, hit me up pls.
 
 ## Prerequisites
 [The Materials and Backgrounds](https://steamcommunity.com/sharedfiles/filedetails/?id=1942736311)
