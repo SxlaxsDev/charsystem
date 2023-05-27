@@ -15,9 +15,6 @@ surface.CreateFont("Welcome", {
     
    blursize = 0,
    weight = 800,
-
-
-
 })
 
 surface.CreateFont("CustomButton", {
@@ -27,9 +24,6 @@ surface.CreateFont("CustomButton", {
    
    blursize = 0,
    weight = 400,
-
-
-
 })
 
 surface.CreateFont("CharInfosName", {
@@ -39,9 +33,6 @@ surface.CreateFont("CharInfosName", {
    
    blursize = 0,
    weight = 400,
-
-
-
 })
 
 surface.CreateFont("CharInfosJob", {
@@ -51,9 +42,6 @@ surface.CreateFont("CharInfosJob", {
    
    blursize = 0,
    weight = 400,
-
-
-
 })
 
 surface.CreateFont("EnterNamePanel", {
@@ -63,9 +51,6 @@ surface.CreateFont("EnterNamePanel", {
    
    blursize = 0,
    weight = 400,
-
-
-
 })
 
 surface.CreateFont("NamePanelError", {
@@ -75,7 +60,4 @@ surface.CreateFont("NamePanelError", {
    
    blursize = 0,
    weight = 200,
-
-
-
 })

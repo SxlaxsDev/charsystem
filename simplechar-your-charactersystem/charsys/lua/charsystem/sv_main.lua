@@ -9,6 +9,11 @@ util.AddNetworkString("ChangeNameOfChar")
 CharSystemDB = CharSystemDB or {}
 
 
+
+if CharSystem.Config.UseWorkshop then
+  resource.AddWorkshop("1942736311")
+end
+
 hook.Add("DarkRPDBInitialized", "CharSystemSetup", function() -- Stick to the conventions
 
 
