@@ -9,11 +9,12 @@ util.AddNetworkString("ChangeNameOfChar")
 CharSystemDB = CharSystemDB or {}
 
 
+
 if CharSystem.Config.UseWorkshop then
   resource.AddWorkshop("1942736311")
 end
 
-hook.Add("DarkRPDBInitialized", "DBErstellen", function()
+hook.Add("DarkRPDBInitialized", "CharSystemSetup", function() -- Stick to the conventions
 
 
 sql.Query("CREATE TABLE IF NOT EXISTS charsys (id INTEGER PRIMARY KEY AUTOINCREMENT, slot INTEGER NOT NULL, steamid varchar(255) NOT NULL, name varchar(255) NOT NULL, money INTEGER NOT NULL, job INTEGER NOT NULL, cloneid INTEGER)")
@@ -138,7 +139,7 @@ end
 ply.IsCreatingProfile = true  -- set variable that he is creating a char on true
 
 local SlotNumber = net.ReadUInt(8)  -- On which slot should a char be created
-local name = net.ReadString()  -- Which name?
+local name = sql.SQLStr(net.ReadString())  -- Which name?
 local MaxSlots = CharSystem.Config.MaxChars[ply:GetUserGroup()] or CharSystem.Config.DefaultChars -- Which limit does the usergroup has, if it does not have one, set it to default
 
  -- No ints bigger than 3 or less than 1
@@ -219,15 +220,7 @@ end)
 
 function CharSystemDB.FindPlayer(name)  -- Just a function to get the player with a given name
   if(!name) then return end
-
-  for k,v in pairs(player.GetAll()) do
-
-    if string.find(string.lower(v:Name()), string.lower(name)) == nil then
-
-      continue
-    end
-    return v
-  end
+  return DarkRP.findPlayer(name) -- if were using DarkRP then why an own implementation that sucks on performance
 end
 
 
