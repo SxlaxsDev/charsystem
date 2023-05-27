@@ -39,6 +39,9 @@ CharSystem.Config.CreateCharacterBut = "Create a character!" -- Create a charact
 CharSystem.Config.PlayCharacterBut = "Play this Character!" -- Play on this character
 CharSystem.Config.LockedCharacter = "This slot is locked!" -- player is not allowed to create a char on this slot
 
+-- Workshop
+CharSystem.Config.UseWorkshop = true -- Set to true, to enable automatic workshop download
+
 timer.Simple(0, function()
 
 -- This is the config file
