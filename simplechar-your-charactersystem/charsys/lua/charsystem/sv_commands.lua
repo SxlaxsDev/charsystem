@@ -138,7 +138,7 @@ local commands = {
 
   ["accept"] = function(ply, args)
     if(ply.InviteTeam) then
-      ply:changeTeam(ply.InviteTeam)
+      ply:changeTeam(ply.InviteTeam, true, true)
       ply.InviteTeam = nil
       timer.Remove("Invitation"..ply:SteamID())
       ply:ChatAddText(string.Replace(CharSystem.Config.AcceptInvitation, "%team%", team.GetName(ply:Team())))

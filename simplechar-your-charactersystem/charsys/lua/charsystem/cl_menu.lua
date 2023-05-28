@@ -61,13 +61,15 @@ CharsLoaded = true
 
 end)
 
-
+local loadingPanel
 net.Receive("CharacterSystemOpenMenu", function()
-local MaxChars = net.ReadUInt(8)
-CharSystem.OpenCharMenu(MaxChars)
-
-
+  if loadingPanel and IsValid(loadingPanel) then
+    loadingPanel:Remove()
+  end
+  local MaxChars = net.ReadUInt(8)
+  CharSystem.OpenCharMenu(MaxChars)
 end)
+
 -- MENU STUFF
 
 local blur = Material("pp/blurscreen") -- blur Material
@@ -450,8 +452,8 @@ end
 
 if(CharPlaying != 1 and CharName1) then
 local Char1DeleteButton = vgui.Create( "DImageButton" , Char1Panel )
-Char1DeleteButton:SetPos( Char1Panel:GetWide() -16 , 0) -- 16 nicht ändern
-Char1DeleteButton:SetSize( 16 , 16 ) -- 16 is fest nicht ändern
+Char1DeleteButton:SetPos( Char1Panel:GetWide() -16 , 0) -- 16 nicht ï¿½ndern
+Char1DeleteButton:SetSize( 16 , 16 ) -- 16 is fest nicht ï¿½ndern
 Char1DeleteButton:SetImage("icon16/bin_closed.png")
 function Char1DeleteButton.DoClick()
 CharSystem.DeleteCharMenuOpen(1)
@@ -600,8 +602,8 @@ end
 
 if(CharPlaying != 2 and CharName2) then
 local Char2DeleteButton = vgui.Create( "DImageButton" , Char2Panel )
-Char2DeleteButton:SetPos( Char2Panel:GetWide() -16 , 0) -- 16 nicht ändern
-Char2DeleteButton:SetSize( 16 , 16 ) -- 16 is fest nicht ändern
+Char2DeleteButton:SetPos( Char2Panel:GetWide() -16 , 0) -- 16 nicht ï¿½ndern
+Char2DeleteButton:SetSize( 16 , 16 ) -- 16 is fest nicht ï¿½ndern
 Char2DeleteButton:SetImage("icon16/bin_closed.png")
 function Char2DeleteButton.DoClick()
 CharSystem.DeleteCharMenuOpen(2)
@@ -752,8 +754,8 @@ end
 
 if(CharPlaying != 3 and CharName3) then
 local Char3DeleteButton = vgui.Create( "DImageButton" , Char3Panel )
-Char3DeleteButton:SetPos( Char3Panel:GetWide() -16 , 0) -- 16 nicht ändern
-Char3DeleteButton:SetSize( 16 , 16 ) -- 16 is fest nicht ändern
+Char3DeleteButton:SetPos( Char3Panel:GetWide() -16 , 0) -- 16 nicht ï¿½ndern
+Char3DeleteButton:SetSize( 16 , 16 ) -- 16 is fest nicht ï¿½ndern
 Char3DeleteButton:SetImage("icon16/bin_closed.png")
 function Char3DeleteButton.DoClick()
 CharSystem.DeleteCharMenuOpen(3)
@@ -816,5 +818,35 @@ end
 chat.AddText(unpack(ColorMessageTable))
 end)
 
+local loadingString = "Loading"
+hook.Add("InitPostEntity","CharacterSystemLoading",function()
+  loadingPanel = vgui.Create("DPanel")
+  loadingPanel:SetPos(0, 0)
+  loadingPanel:SetSize(ScrW(), ScrH())
+  loadingPanel.Paint = function(self, w, h)
+    draw.RoundedBox(0, 0, 0, w, h, Color(64,64,64,175))
+    draw.SimpleText(loadingString, "HeaderFont", w / 2, h / 2, Color(255,255,255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+  end
+  loadingPanel:MakePopup()
+  loadingPanel:DoModal()
 
+  local quitButton = vgui.Create("DButton", loadingPanel)
+  quitButton:SetPos(ScrW() - 200, 0)
+  quitButton:SetSize(200, 50)
+  quitButton:SetText("Quit")
+  quitButton:SetFont("Default")
+  quitButton.DoClick = function()
+    RunConsoleCommand("disconnect")
+  end
+  quitButton.Paint = function(self, w, h)
+    draw.RoundedBox(0, 0, 0, w, h, Color(205,205,205))
+  end
 
+  timer.Create("CharSystemLoading", 0.5, 0, function()
+    if (loadingString == "Loading...") then
+      loadingString = "Loading"
+    else
+      loadingString = loadingString .. "."
+    end
+  end)
+end)
