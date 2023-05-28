@@ -24,33 +24,46 @@ sql.Query("CREATE INDEX IF NOT EXISTS IDX_CSYS_STEAMID ON charsys (steamid)")
 
 end)
 
+local load_queue = {}
 
+hook.Add("PlayerInitialSpawn", "CharSystemLoad", function(ply)
+  ply:Lock()
+  ply.IsChoosingChar = true
+	load_queue[ply] = true
+end)
 
-hook.Add("PlayerInitialSpawn", "CharSystemPlayerJoinServer", function(ply)
+hook.Add("SetupMove", "CharSystemLoad", function(ply, _, cmd)
+	if load_queue[ply] and not cmd:IsForced() then
+		load_queue[ply] = nil
 
-timer.Simple(3, function()
+		CharSystem:OnPlayerReady(ply)
+	end
+end)
 
-if(ply:IsValid()) then  -- is the player valid
+function CharSystem:OnPlayerReady(ply)
+  if (ply:IsValid()) then
+    CharSystemDB.SendProfiles(ply)
 
-  ply:Lock()  -- no inputs while he did not choose a char
-  ply.IsChoosingChar = true  -- he is choosing a char, will be set to nil when Server receives "CharSystemPlayProfile"
-  CharSystemDB.SendProfiles(ply)
-  
     net.Start("CharacterSystemOpenMenu")
     net.WriteUInt(CharSystem.Config.MaxChars[ply:GetUserGroup()] or CharSystem.Config.DefaultChars,8)
     net.Send(ply)
-    
-   end
-  end)
- end)
+  end
+end
 
 hook.Add("ShowSpare2", "OpenCharSystemWithF4", function(ply)
-net.Start("CharacterSystemOpenMenu")
-net.WriteUInt(CharSystem.Config.MaxChars[ply:GetUserGroup()] or CharSystem.Config.DefaultChars,8)
+  net.Start("CharacterSystemOpenMenu")
+  net.WriteUInt(CharSystem.Config.MaxChars[ply:GetUserGroup()] or CharSystem.Config.DefaultChars,8)
+  net.Send(ply)
+end)
 
-    net.Send(ply)
-    end)
+hook.Add("CanChangeRPName", "CharSystemNameChange", function(ply, name)
+  return false, CharSystem.Config.CantChangeName
+end)
 
+hook.Add("playerCanChangeTeam", "CharSystemJobChange", function(ply, job, force)
+  if force then return end
+  return false, CharSystem.Config.CantChangeJob
+end)
 
 hook.Add("OnPlayerChangedTeam", "JobUpdatenCharSystem", function(ply, oldjob, newjob)
 
@@ -141,6 +154,7 @@ ply.IsCreatingProfile = true  -- set variable that he is creating a char on true
 local SlotNumber = net.ReadUInt(8)  -- On which slot should a char be created
 local name = sql.SQLStr(net.ReadString())  -- Which name?
 local MaxSlots = CharSystem.Config.MaxChars[ply:GetUserGroup()] or CharSystem.Config.DefaultChars -- Which limit does the usergroup has, if it does not have one, set it to default
+print(name, SlotNumber)
 
  -- No ints bigger than 3 or less than 1
 
@@ -160,7 +174,7 @@ local Slot3 = SlotTable and SlotTable[3] and SlotTable[3].slot and tonumber(Slot
 
 if(!SlotTable or !Slot1 and !Slot2 and !Slot3) then  -- if the slot is not used
 
-  local NameTable = sql.Query("SELECT name FROM charsys WHERE name = '"..name.."'")  -- Does the Name already exist?
+  local NameTable = sql.Query("SELECT name FROM charsys WHERE name = "..name)  -- Does the Name already exist?
   if(NameTable) then
     DarkRP.notify(ply,1,4,CharSystem.Config.NameAlreadyExists)
 
@@ -168,9 +182,9 @@ if(!SlotTable or !Slot1 and !Slot2 and !Slot3) then  -- if the slot is not used
   end
 if(CharSystem.Config.CloneID) then
   local CloneIDNumber = math.random(1,9)*1000 + math.random(1,9)*100 + math.random(1,9)*10 + math.random(1,9)
-   sql.Query("INSERT INTO charsys (slot, steamid, name, money, job, cloneid) VALUES ("..SlotNumber..", '"..ply:SteamID().."', '"..name.."', "..CharSystem.Config.DefaultMoney..", '"..CharSystem.Config.DefaultTeam.."',"..CloneIDNumber..")")
+   sql.Query("INSERT INTO charsys (slot, steamid, name, money, job, cloneid) VALUES ("..SlotNumber..", '"..ply:SteamID().."', "..name..", "..CharSystem.Config.DefaultMoney..", '"..CharSystem.Config.DefaultTeam.."',"..CloneIDNumber..")")
   else
-  sql.Query("INSERT INTO charsys (slot, steamid, name, money, job, cloneid) VALUES ("..SlotNumber..", '"..ply:SteamID().."', '"..name.."', "..CharSystem.Config.DefaultMoney..", '"..CharSystem.Config.DefaultTeam.."',0 )")
+  sql.Query("INSERT INTO charsys (slot, steamid, name, money, job, cloneid) VALUES ("..SlotNumber..", '"..ply:SteamID().."', "..name..", "..CharSystem.Config.DefaultMoney..", '"..CharSystem.Config.DefaultTeam.."',0 )")
 end
   ply.IsCreatingProfile = nil  -- the player does not create a profile anymore
   DarkRP.notify(ply,0,4,CharSystem.Config.CharCreated)
