@@ -1,4 +1,4 @@
-util.AddNetworkString("CharSystemCreateProfile")
+﻿util.AddNetworkString("CharSystemCreateProfile")
 util.AddNetworkString("CharSystemPlayProfile")
 util.AddNetworkString("CharSystemSendProfiles")
 util.AddNetworkString("CharSystemDeleteProfile")
@@ -8,268 +8,221 @@ util.AddNetworkString("CharacterSystemOpenMenu")
 util.AddNetworkString("ChangeNameOfChar")
 CharSystemDB = CharSystemDB or {}
 
-
-
 if CharSystem.Config.UseWorkshop then
-  resource.AddWorkshop("1942736311")
+	resource.AddWorkshop("1942736311")
 end
 
-hook.Add("DarkRPDBInitialized", "CharSystemSetup", function() -- Stick to the conventions
-
-
-sql.Query("CREATE TABLE IF NOT EXISTS charsys (id INTEGER PRIMARY KEY AUTOINCREMENT, slot INTEGER NOT NULL, steamid varchar(255) NOT NULL, name varchar(255) NOT NULL, money INTEGER NOT NULL, job INTEGER NOT NULL, cloneid INTEGER)")
-sql.Query("CREATE INDEX IF NOT EXISTS IDX_NAME_PLAY ON charsys (name)")
-sql.Query("CREATE INDEX IF NOT EXISTS IDX_CSYS_ID ON charsys (id)")
-sql.Query("CREATE INDEX IF NOT EXISTS IDX_CSYS_STEAMID ON charsys (steamid)")
-
+-- Stick to the conventions
+hook.Add("DarkRPDBInitialized", "CharSystemSetup", function()
+	sql.Query("CREATE TABLE IF NOT EXISTS charsys (id INTEGER PRIMARY KEY AUTOINCREMENT, slot INTEGER NOT NULL, steamid varchar(255) NOT NULL, name varchar(255) NOT NULL, money INTEGER NOT NULL, job INTEGER NOT NULL, cloneid INTEGER)")
+	sql.Query("CREATE INDEX IF NOT EXISTS IDX_NAME_PLAY ON charsys (name)")
+	sql.Query("CREATE INDEX IF NOT EXISTS IDX_CSYS_ID ON charsys (id)")
+	sql.Query("CREATE INDEX IF NOT EXISTS IDX_CSYS_STEAMID ON charsys (steamid)")
 end)
 
 local load_queue = {}
 
 hook.Add("PlayerInitialSpawn", "CharSystemLoad", function(ply)
-  ply:Lock()
-  ply.IsChoosingChar = true
+	ply:Lock()
+	ply.IsChoosingChar = true
 	load_queue[ply] = true
 end)
 
 hook.Add("SetupMove", "CharSystemLoad", function(ply, _, cmd)
 	if load_queue[ply] and not cmd:IsForced() then
 		load_queue[ply] = nil
-
 		CharSystem:OnPlayerReady(ply)
 	end
 end)
 
 function CharSystem:OnPlayerReady(ply)
-  if (ply:IsValid()) then
-    CharSystemDB.SendProfiles(ply)
-
-    net.Start("CharacterSystemOpenMenu")
-    net.WriteUInt(CharSystem.Config.MaxChars[ply:GetUserGroup()] or CharSystem.Config.DefaultChars,8)
-    net.Send(ply)
-  end
+	if ply:IsValid() then
+		CharSystemDB.SendProfiles(ply)
+		net.Start("CharacterSystemOpenMenu")
+		net.WriteUInt(CharSystem.Config.MaxChars[ply:GetUserGroup()] or CharSystem.Config.DefaultChars, 8)
+		net.Send(ply)
+	end
 end
 
 hook.Add("ShowSpare2", "OpenCharSystemWithF4", function(ply)
-  net.Start("CharacterSystemOpenMenu")
-  net.WriteUInt(CharSystem.Config.MaxChars[ply:GetUserGroup()] or CharSystem.Config.DefaultChars,8)
-  net.Send(ply)
+	net.Start("CharacterSystemOpenMenu")
+	net.WriteUInt(CharSystem.Config.MaxChars[ply:GetUserGroup()] or CharSystem.Config.DefaultChars, 8)
+	net.Send(ply)
 end)
 
-hook.Add("CanChangeRPName", "CharSystemNameChange", function(ply, name)
-  return false, CharSystem.Config.CantChangeName
-end)
+hook.Add("CanChangeRPName", "CharSystemNameChange", function(ply, name) return false, CharSystem.Config.CantChangeName end)
 
 hook.Add("playerCanChangeTeam", "CharSystemJobChange", function(ply, job, force)
-  if force then return end
-  return false, CharSystem.Config.CantChangeJob
+	if force then return end
+
+	return false, CharSystem.Config.CantChangeJob
 end)
 
 hook.Add("OnPlayerChangedTeam", "JobUpdatenCharSystem", function(ply, oldjob, newjob)
-
-if(!ply.IsChoosingChar) then  -- Did the player just join the server an still receives money?
-
-  sql.Query("UPDATE charsys SET job = "..newjob.." WHERE steamid = '"..ply:SteamID().."' and slot = "..ply.WhichSlotPlaying)  -- update money in db
-
-  CharSystemDB.SendProfiles(ply)  -- Update the money on the client
-end
+	-- Did the player just join the server an still receives money?
+	if not ply.IsChoosingChar then
+		sql.Query("UPDATE charsys SET job = " .. newjob .. " WHERE steamid = '" .. ply:SteamID() .. "' and slot = " .. ply.WhichSlotPlaying) -- update money in db
+		CharSystemDB.SendProfiles(ply) -- Update the money on the client
+	end
 end)
-
 
 function CharSystemDB.SendProfiles(ply, slotnumber)
-  if(ply:IsValid()) then
+	if ply:IsValid() then
+		local CharTable = sql.Query("SELECT * FROM charsys WHERE steamid = '" .. ply:SteamID() .. "'") -- gets all chars of the player
+		CharTable = CharTable or {} -- if he does not have any chars make an empty table
 
-    local CharTable = sql.Query("SELECT * FROM charsys WHERE steamid = '"..ply:SteamID().."'")  -- gets all chars of the player
+		--
+		if slotnumber then
+			CharTable["playing"] = slotnumber -- the client should not on which char he is playing
+		end
 
-
-    CharTable = CharTable or {} -- if he does not have any chars make an empty table
-
-      if slotnumber then --
-
-        CharTable["playing"] = slotnumber -- the client should not on which char he is playing
-      end
-
-      net.Start("CharSystemSendProfiles")
-      net.WriteTable(CharTable)
-      net.Send(ply)
-
-    
-  end
+		net.Start("CharSystemSendProfiles")
+		net.WriteTable(CharTable)
+		net.Send(ply)
+	end
 end
 
-net.Receive("CharSystemPlayProfile", function(len,ply)
-if(!ply:IsValid()) then 
-  return
-end
-local Slot = net.ReadUInt(8)  -- Which slot did the player choose to play?
-Slot = math.Clamp(Slot,1,3)
-local ProfileTable = sql.Query("SELECT * FROM charsys WHERE steamid = '"..ply:SteamID().."' and slot = "..Slot.."")   -- this gets a table of the char with the given slot and steamid
+net.Receive("CharSystemPlayProfile", function(len, ply)
+	if not ply:IsValid() then return end
+	local Slot = net.ReadUInt(8) -- Which slot did the player choose to play?
+	Slot = math.Clamp(Slot, 1, 3)
+	local ProfileTable = sql.Query("SELECT * FROM charsys WHERE steamid = '" .. ply:SteamID() .. "' and slot = " .. Slot .. "") -- this gets a table of the char with the given slot and steamid
+	if not ProfileTable then return end --  does not own any chars with the given slot
+	ProfileTable = ProfileTable[1]
 
-if(!ProfileTable) then  --  does not own any chars with the given slot
-  return
-end
+	-- did the user join on the server and did not choose a profile?
+	if ply.IsChoosingChar then
+		ply:UnLock()
+		ply.IsChoosingChar = nil -- he chose a profile
+	end
 
-ProfileTable = ProfileTable[1]
+	ply.WhichSlotPlaying = Slot -- The variable which defines which profile the player currently uses should be set to the int we receive from the client
+	ply:changeTeam(tonumber(ProfileTable.job), true, true)
 
-if(ply.IsChoosingChar) then  -- did the user join on the server and did not choose a profile?
- 
-  ply:UnLock()
-  ply.IsChoosingChar = nil  -- he chose a profile
-end
-    
-ply.WhichSlotPlaying = Slot  -- The variable which defines which profile the player currently uses should be set to the int we receive from the client
-ply:changeTeam(tonumber(ProfileTable.job), true, true)
+	if CharSystem.Config.CloneID then
+		if CharSystem.Config.JobsWithOutID[tonumber(ProfileTable.job)] then
+			ply:setDarkRPVar("rpname", tostring(ProfileTable.name))
+		else
+			ply:setDarkRPVar("rpname", tostring(ProfileTable.cloneid) .. " " .. tostring(ProfileTable.name))
+		end
+	else
+		ply:setDarkRPVar("rpname", tostring(ProfileTable.name))
+	end
 
-if(CharSystem.Config.CloneID) then
-  if(CharSystem.Config.JobsWithOutID[tonumber(ProfileTable.job)]) then
-    ply:setDarkRPVar("rpname", tostring(ProfileTable.name))
-     else
-       ply:setDarkRPVar("rpname", tostring(ProfileTable.cloneid).. " " ..tostring(ProfileTable.name))
-     end
-  
-else
-ply:setDarkRPVar("rpname", tostring(ProfileTable.name))
-end
-ply:setDarkRPVar("money", tonumber(ProfileTable.money))
-ply:Spawn()
-
-
-
-CharSystemDB.SendProfiles(ply, Slot) -- update data
-
+	ply:setDarkRPVar("money", tonumber(ProfileTable.money))
+	ply:Spawn()
+	CharSystemDB.SendProfiles(ply, Slot) -- update data
 end)
 
-net.Receive("CharSystemCreateProfile", function(len,ply)
-if(!ply:IsValid()) then
-  return
-end
+net.Receive("CharSystemCreateProfile", function(len, ply)
+	if not ply:IsValid() then return end
 
-if(ply.IsCreatingProfile) then  -- is the player already creating a char?
-  DarkRP.notify(ply,1,4,CharSystem.Config.AlreadyCreating)
-  return
-end
+	-- is the player already creating a char?
+	if ply.IsCreatingProfile then
+		DarkRP.notify(ply, 1, 4, CharSystem.Config.AlreadyCreating)
 
-ply.IsCreatingProfile = true  -- set variable that he is creating a char on true
+		return
+	end
 
-local SlotNumber = net.ReadUInt(8)  -- On which slot should a char be created
-local name = sql.SQLStr(net.ReadString())  -- Which name?
-local MaxSlots = CharSystem.Config.MaxChars[ply:GetUserGroup()] or CharSystem.Config.DefaultChars -- Which limit does the usergroup has, if it does not have one, set it to default
-print(name, SlotNumber)
+	ply.IsCreatingProfile = true -- set variable that he is creating a char on true
+	local SlotNumber = net.ReadUInt(8) -- On which slot should a char be created
+	local name = sql.SQLStr(net.ReadString()) -- Which name?
+	local MaxSlots = CharSystem.Config.MaxChars[ply:GetUserGroup()] or CharSystem.Config.DefaultChars -- Which limit does the usergroup has, if it does not have one, set it to default
+	print(name, SlotNumber)
 
- -- No ints bigger than 3 or less than 1
+	-- No ints bigger than 3 or less than 1
+	if MaxSlots < SlotNumber then
+		DarkRP.notify(ply, 1, 4, CharSystem.Config.TooHighSlot)
 
-if(MaxSlots < SlotNumber) then
-  DarkRP.notify(ply,1,4,CharSystem.Config.TooHighSlot)
-  return
+		return
+	end
 
-end
+	SlotNumber = math.Clamp(SlotNumber, 1, 3)
+	local SlotTable = sql.Query("SELECT slot FROM charsys WHERE steamid = '" .. ply:SteamID() .. "'") -- gets all the chars/slots of the player
+	local Slot1 = SlotTable and SlotTable[1] and SlotTable[1].slot and tonumber(SlotTable[1].slot) == SlotNumber -- Is the char on the first index the char with the same slot on which we should create a chat?
+	local Slot2 = SlotTable and SlotTable[2] and SlotTable[2].slot and tonumber(SlotTable[2].slot) == SlotNumber -- So this does mean if there is already a char with this slot so is the slot already used?
+	local Slot3 = SlotTable and SlotTable[3] and SlotTable[3].slot and tonumber(SlotTable[3].slot) == SlotNumber
 
-SlotNumber = math.Clamp(SlotNumber,1,3)
+	-- if the slot is not used
+	if not SlotTable or not Slot1 and not Slot2 and not Slot3 then
+		local NameTable = sql.Query("SELECT name FROM charsys WHERE name = " .. name) -- Does the Name already exist?
 
-local SlotTable = sql.Query("SELECT slot FROM charsys WHERE steamid = '"..ply:SteamID().."'")   -- gets all the chars/slots of the player
+		if NameTable then
+			DarkRP.notify(ply, 1, 4, CharSystem.Config.NameAlreadyExists)
 
-local Slot1 = SlotTable and SlotTable[1] and SlotTable[1].slot and tonumber(SlotTable[1].slot) == SlotNumber  -- Is the char on the first index the char with the same slot on which we should create a chat?
-local Slot2 = SlotTable and SlotTable[2] and SlotTable[2].slot and tonumber(SlotTable[2].slot) == SlotNumber   -- So this does mean if there is already a char with this slot so is the slot already used?
-local Slot3 = SlotTable and SlotTable[3] and SlotTable[3].slot and tonumber(SlotTable[3].slot) == SlotNumber
+			return
+		end
 
-if(!SlotTable or !Slot1 and !Slot2 and !Slot3) then  -- if the slot is not used
+		if CharSystem.Config.CloneID then
+			local CloneIDNumber = math.random(1, 9) * 1000 + math.random(1, 9) * 100 + math.random(1, 9) * 10 + math.random(1, 9)
+			sql.Query("INSERT INTO charsys (slot, steamid, name, money, job, cloneid) VALUES (" .. SlotNumber .. ", '" .. ply:SteamID() .. "', " .. name .. ", " .. CharSystem.Config.DefaultMoney .. ", '" .. CharSystem.Config.DefaultTeam .. "'," .. CloneIDNumber .. ")")
+		else
+			sql.Query("INSERT INTO charsys (slot, steamid, name, money, job, cloneid) VALUES (" .. SlotNumber .. ", '" .. ply:SteamID() .. "', " .. name .. ", " .. CharSystem.Config.DefaultMoney .. ", '" .. CharSystem.Config.DefaultTeam .. "',0 )")
+		end
 
-  local NameTable = sql.Query("SELECT name FROM charsys WHERE name = "..name)  -- Does the Name already exist?
-  if(NameTable) then
-    DarkRP.notify(ply,1,4,CharSystem.Config.NameAlreadyExists)
+		ply.IsCreatingProfile = nil -- the player does not create a profile anymore
+		DarkRP.notify(ply, 0, 4, CharSystem.Config.CharCreated)
+		-- update profile
+	end
 
-    return
-  end
-if(CharSystem.Config.CloneID) then
-  local CloneIDNumber = math.random(1,9)*1000 + math.random(1,9)*100 + math.random(1,9)*10 + math.random(1,9)
-   sql.Query("INSERT INTO charsys (slot, steamid, name, money, job, cloneid) VALUES ("..SlotNumber..", '"..ply:SteamID().."', "..name..", "..CharSystem.Config.DefaultMoney..", '"..CharSystem.Config.DefaultTeam.."',"..CloneIDNumber..")")
-  else
-  sql.Query("INSERT INTO charsys (slot, steamid, name, money, job, cloneid) VALUES ("..SlotNumber..", '"..ply:SteamID().."', "..name..", "..CharSystem.Config.DefaultMoney..", '"..CharSystem.Config.DefaultTeam.."',0 )")
-end
-  ply.IsCreatingProfile = nil  -- the player does not create a profile anymore
-  DarkRP.notify(ply,0,4,CharSystem.Config.CharCreated)
-    -- update profile
-
-
-end
-
-ply.IsCreatingProfile = nil
-CharSystemDB.SendProfiles(ply)
-
+	ply.IsCreatingProfile = nil
+	CharSystemDB.SendProfiles(ply)
 end)
 
-net.Receive("CharSystemDeleteProfile", function(len,ply)
-if(!ply:IsValid()) then
-  return
-end
+net.Receive("CharSystemDeleteProfile", function(len, ply)
+	if not ply:IsValid() then return end
+	local DeletedSlot = net.ReadUInt(8) -- get the slot of the char which should be deleted
+	DeletedSlot = math.Clamp(DeletedSlot, 1, 3)
 
-local DeletedSlot = net.ReadUInt(8)  -- get the slot of the char which should be deleted
-DeletedSlot = math.Clamp(DeletedSlot,1,3)
+	-- is the player currently playing on the same char?
+	if DeletedSlot == ply.WhichSlotPlaying then
+		DarkRP.notify(ply, 1, 4, CharSystem.Config.DeletePlayingChar)
 
-if(DeletedSlot == ply.WhichSlotPlaying) then  -- is the player currently playing on the same char?
+		return
+	end
 
-  DarkRP.notify(ply,1,4,CharSystem.Config.DeletePlayingChar)
-  return
-end
+	local DeletedChar = sql.Query("SELECT * FROM charsys WHERE steamid = '" .. ply:SteamID() .. "' AND slot = " .. DeletedSlot) -- is there a char with this slot and steamid?
+	if not DeletedChar then return end
+	DeletedChar = DeletedChar[1]
 
-local DeletedChar = sql.Query("SELECT * FROM charsys WHERE steamid = '"..ply:SteamID().."' AND slot = "..DeletedSlot)   -- is there a char with this slot and steamid?
-
-if(!DeletedChar) then
-  return
-end
-
-DeletedChar = DeletedChar[1]
-
-if(DeletedChar.slot) then
-
-  sql.Query("DELETE FROM charsys WHERE steamid = '"..ply:SteamID().."' AND slot = "..DeletedSlot)  -- delete the char out of the db
-
-  DarkRP.notify(ply,0,4,CharSystem.Config.CharDeleted)
-  CharSystemDB.SendProfiles(ply)  -- Update client data
-end
-
+	if DeletedChar.slot then
+		sql.Query("DELETE FROM charsys WHERE steamid = '" .. ply:SteamID() .. "' AND slot = " .. DeletedSlot) -- delete the char out of the db
+		DarkRP.notify(ply, 0, 4, CharSystem.Config.CharDeleted)
+		CharSystemDB.SendProfiles(ply) -- Update client data
+	end
 end)
 
+-- Just a function to get the player with a given name
+function CharSystemDB.FindPlayer(name)
+	if not name then return end
+	-- if were using DarkRP then why an own implementation that sucks on performance
 
-
-function CharSystemDB.FindPlayer(name)  -- Just a function to get the player with a given name
-  if(!name) then return end
-  return DarkRP.findPlayer(name) -- if were using DarkRP then why an own implementation that sucks on performance
+	return DarkRP.findPlayer(name)
 end
-
 
 function CharSystemDB.getCharInfoSteamID(steamid)
-  if(steamid) then  -- is the steamid valid
-
-    local CharTable = sql.Query("SELECT * FROM charsys WHERE steamid = '"..steamid.."'") -- does the steamid/player own chars
-
-    if(CharTable) then
-
-      return CharTable
-    end
-  end
+	-- is the steamid valid
+	if steamid then
+		local CharTable = sql.Query("SELECT * FROM charsys WHERE steamid = '" .. steamid .. "'") -- does the steamid/player own chars
+		if CharTable then return CharTable end
+	end
 end
-
 
 local PLAYER = FindMetaTable("Player")
 
-function PLAYER:ChatAddText(...)  -- Variable number of arguments
-  net.Start("ColorMessage")
-  net.WriteTable({...})
-  net.Send(self)
+-- Variable number of arguments
+function PLAYER:ChatAddText(...)
+	net.Start("ColorMessage")
+
+	net.WriteTable({...})
+
+	net.Send(self)
 end
 
 timer.Simple(0, function()
-
-function DarkRP.storeMoney(ply, amount)
-  if(ply.IsChoosingChar) then
-    return
-  end
-
-  sql.Query("UPDATE charsys SET money = "..amount.." WHERE steamid = '"..ply:SteamID().."' AND slot = "..ply.WhichSlotPlaying)
-  CharSystemDB.SendProfiles(ply)
-
-end
+	function DarkRP.storeMoney(ply, amount)
+		if ply.IsChoosingChar then return end
+		sql.Query("UPDATE charsys SET money = " .. amount .. " WHERE steamid = '" .. ply:SteamID() .. "' AND slot = " .. ply.WhichSlotPlaying)
+		CharSystemDB.SendProfiles(ply)
+	end
 end)
-
-
